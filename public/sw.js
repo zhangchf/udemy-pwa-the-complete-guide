@@ -21,6 +21,7 @@ self.addEventListener('install', function(event) {
                                 'https://fonts.googleapis.com/icon?family=Material+Icons',
                                 'https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css'
                             ])
+                            console.log('[Service Worker] Precaching App Shell finished');
                         }));
 });
 
@@ -36,7 +37,15 @@ self.addEventListener('fetch', function(event) {
                 if (response) {
                     return response;
                 } else {
-                    return fetch(event.request);
+                    return fetch(event.request)
+                        .then(function(res) {
+                            return caches.open('dynamic')
+                                .then(function(cache) {
+                                     // res.clone: because response can be consumed only once.
+                                    cache.put(event.request.url, res.clone());
+                                    return res;
+                                });
+                        });
                 }
             })
     );
